@@ -142,12 +142,24 @@ export async function getSettings() {
 export async function getCountries() {
   try {
     const res = await fetch(
-      "https://restcountries.com/v2/all?fields=name,flag"
+      "https://restcountries.com/v3.1/all?fields=name,flags"
     );
     const countries = await res.json();
-    return countries;
-  } catch {
-    throw new Error("Could not fetch countries");
+    
+    // Transform the v3.1 API response to match expected format
+    const formattedCountries = countries.map((country) => ({
+      name: country.name.common,
+      flag: country.flags.svg || country.flags.png,
+    }));
+    
+    // Sort countries alphabetically
+    formattedCountries.sort((a, b) => a.name.localeCompare(b.name));
+    
+    return formattedCountries;
+  } catch (error) {
+    console.error("Error fetching countries:", error);
+    // Return empty array instead of throwing to prevent page crash
+    return [];
   }
 }
 
